@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de Contrato e Apresentação</title>
+    <!-- Biblioteca oficial de Login do Google -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -18,6 +20,17 @@
             box-shadow: 0 4px 10px rgba(0,0,0,0.1);
             max-width: 800px;
             margin: 0 auto;
+        }
+        #login-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        #login-screen h3 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        #conteudo-protegido {
+            display: none;
         }
         h2 {
             color: #333;
@@ -80,6 +93,17 @@
             text-align: center;
             font-weight: bold;
         }
+        .user-info {
+            background: #eef2f7;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
         @media(max-width: 600px) {
             .grid-2 { grid-template-columns: 1fr; }
         }
@@ -88,137 +112,179 @@
 <body>
 
 <div class="form-container">
-    <h2>Cadastro de Contrato e Evento</h2>
     
-    <!-- Formulário apontando diretamente para o Web App via target iframe (zero CORS, zero 401) -->
-    <form id="meuFormulario" method="POST" action="https://script.google.com/macros/s/AKfycbzqEZeHdOI0UuTu99WkziXyA4-tPOA0yUP7CfY0Hsk59QdaXscQcXs35fG3Bf6Kf8j3_Q/exec" target="hidden_iframe">
+    <!-- TELA DE LOGIN -->
+    <div id="login-screen">
+        <h3>Área Restrita - Gestão de Contratos</h3>
+        <p style="color: #666; margin-bottom: 25px; font-size: 14px;">Autentique-se com uma conta autorizada para prosseguir.</p>
         
-        <!-- Dados do Artista -->
-        <fieldset>
-            <legend>Informações do Artista</legend>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label for="nomeArtistico">Nome Artístico:</label>
-                    <input type="text" id="nomeArtistico" name="nomeArtistico" required>
-                </div>
-                <div class="form-group">
-                    <label for="nomeArtista">Nome Artista (Razão/Civil):</label>
-                    <input type="text" id="nomeArtista" name="nomeArtista" required>
-                </div>
-            </div>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label for="cpfArtista">CPF Artista:</label>
-                    <input type="text" id="cpfArtista" name="cpfArtista" placeholder="000.000.000-00">
-                </div>
-                <div class="form-group">
-                    <label for="enderecoArtista">Endereço Artista:</label>
-                    <input type="text" id="enderecoArtista" name="enderecoArtista">
-                </div>
-            </div>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label for="riderTecnico">Rider Técnico (Link ou Descrição):</label>
-                    <input type="text" id="riderTecnico" name="riderTecnico">
-                </div>
-                <div class="form-group">
-                    <label for="riderHospitalidade">Rider Hospitalidade:</label>
-                    <input type="text" id="riderHospitalidade" name="riderHospitalidade">
-                </div>
-            </div>
-        </fieldset>
-
-        <!-- Dados do Contratante -->
-        <fieldset>
-            <legend>Informações do Contratante</legend>
-            <div class="form-group">
-                <label for="nomeContratante">Nome Contratante:</label>
-                <input type="text" id="nomeContratante" name="nomeContratante" required>
-            </div>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label for="nacionalidadeContratante">Nacionalidade Contratante:</label>
-                    <input type="text" id="nacionalidadeContratante" name="nacionalidadeContratante" placeholder="Ex: Brasileira">
-                </div>
-                <div class="form-group">
-                    <label for="cpfCnpjContratante">CPF/CNPJ Contratante:</label>
-                    <input type="text" id="cpfCnpjContratante" name="cpfCnpjContratante" placeholder="000.000.000-00 ou 00.000.000/0000-00">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="enderecoContratante">Endereço Contratante:</label>
-                <input type="text" id="enderecoContratante" name="enderecoContratante">
-            </div>
-        </fieldset>
-
-        <!-- Dados do Evento e Apresentação -->
-        <fieldset>
-            <legend>Dados do Evento</legend>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label for="nomeEvento">Nome do Evento:</label>
-                    <input type="text" id="nomeEvento" name="nomeEvento" required>
-                </div>
-                <div class="form-group">
-                    <label for="localEvento">Local Evento:</label>
-                    <input type="text" id="localEvento" name="localEvento">
-                </div>
-            </div>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label for="dataEvento">Data Evento:</label>
-                    <input type="date" id="dataEvento" name="dataEvento">
-                </div>
-                <div class="form-group">
-                    <label for="settime">Settime:</label>
-                    <input type="text" id="settime" name="settime" placeholder="Ex: 02:00 - 03:30">
-                </div>
-            </div>
-            <div class="form-group">
-                <label for="duracaoApresentacao">Duração Apresentação:</label>
-                <input type="text" id="duracaoApresentacao" name="duracaoApresentacao" placeholder="Ex: 1h30m">
-            </div>
-        </fieldset>
-
-        <!-- Valores e Prazos -->
-        <fieldset>
-            <legend>Financeiro e Emissão</legend>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label for="valorSinal">Valor Sinal:</label>
-                    <input type="text" id="valorSinal" name="valorSinal" placeholder="R$ 0,00">
-                </div>
-                <div class="form-group">
-                    <label for="dataSinal">Data do Sinal:</label>
-                    <input type="date" id="dataSinal" name="dataSinal">
-                </div>
-            </div>
-            <div class="grid-2">
-                <div class="form-group">
-                    <label for="valorCache">Valor Cachê:</label>
-                    <input type="text" id="valorCache" name="valorCache" placeholder="R$ 0,00">
-                </div>
-                <div class="form-group">
-                    <label for="dataEmissao">Data Emissão:</label>
-                    <input type="text" id="dataEmissao" name="dataEmissao" readonly>
-                </div>
-            </div>
-        </fieldset>
+        <div id="g_id_onload"
+             data-client_id="COLE_SEU_CLIENT_ID_AQUI.apps.googleusercontent.com"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left"></div>
         
-        <button type="submit" id="btnEnviar">Cadastrar Informações</button>
-    </form>
-    
-    <div id="mensagem-status"></div>
+        <div id="login-erro" style="color: red; margin-top: 15px; font-weight: bold;"></div>
+    </div>
+
+    <!-- CONTEÚDO DO FORMULÁRIO (Protegido) -->
+    <div id="conteudo-protegido">
+        <div class="user-info">
+            <span id="span-usuario">Logado como: <strong></strong></span>
+            <a href="#" onclick="location.reload()" style="color: #d9534f; text-decoration: none; font-weight: bold;">Sair</a>
+        </div>
+
+        <h2>Cadastro de Contrato e Evento</h2>
+        
+        <form id="meuFormulario">
+            <fieldset>
+                <legend>Informações do Artista</legend>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="nomeArtistico">Nome Artístico:</label>
+                        <input type="text" id="nomeArtistico" name="nomeArtistico" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nomeArtista">Nome Artista (Razão/Civil):</label>
+                        <input type="text" id="nomeArtista" name="nomeArtista" required>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="cpfArtista">CPF Artista:</label>
+                        <input type="text" id="cpfArtista" name="cpfArtista" placeholder="000.000.000-00">
+                    </div>
+                    <div class="form-group">
+                        <label for="enderecoArtista">Endereço Artista:</label>
+                        <input type="text" id="enderecoArtista" name="enderecoArtista">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="riderTecnico">Rider Técnico (Link ou Descrição):</label>
+                        <input type="text" id="riderTecnico" name="riderTecnico">
+                    </div>
+                    <div class="form-group">
+                        <label for="riderHospitalidade">Rider Hospitalidade:</label>
+                        <input type="text" id="riderHospitalidade" name="riderHospitalidade">
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Informações do Contratante</legend>
+                <div class="form-group">
+                    <label for="nomeContratante">Nome Contratante:</label>
+                    <input type="text" id="nomeContratante" name="nomeContratante" required>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="nacionalidadeContratante">Nacionalidade Contratante:</label>
+                        <input type="text" id="nacionalidadeContratante" name="nacionalidadeContratante" placeholder="Ex: Brasileira">
+                    </div>
+                    <div class="form-group">
+                        <label for="cpfCnpjContratante">CPF/CNPJ Contratante:</label>
+                        <input type="text" id="cpfCnpjContratante" name="cpfCnpjContratante" placeholder="000.000.000-00 ou 00.000.000/0000-00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="enderecoContratante">Endereço Contratante:</label>
+                    <input type="text" id="enderecoContratante" name="enderecoContratante">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Dados do Evento</legend>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="nomeEvento">Nome do Evento:</label>
+                        <input type="text" id="nomeEvento" name="nomeEvento" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="localEvento">Local Evento:</label>
+                        <input type="text" id="localEvento" name="localEvento">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="dataEvento">Data Evento:</label>
+                        <input type="date" id="dataEvento" name="dataEvento">
+                    </div>
+                    <div class="form-group">
+                        <label for="settime">Settime:</label>
+                        <input type="text" id="settime" name="settime" placeholder="Ex: 02:00 - 03:30">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="duracaoApresentacao">Duração Apresentação:</label>
+                    <input type="text" id="duracaoApresentacao" name="duracaoApresentacao" placeholder="Ex: 1h30m">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Financeiro e Emissão</legend>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="valorSinal">Valor Sinal:</label>
+                        <input type="text" id="valorSinal" name="valorSinal" placeholder="R$ 0,00">
+                    </div>
+                    <div class="form-group">
+                        <label for="dataSinal">Data do sinal:</label>
+                        <input type="date" id="dataSinal" name="dataSinal">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="valorCache">Valor Cachê:</label>
+                        <input type="text" id="valorCache" name="valorCache" placeholder="R$ 0,00">
+                    </div>
+                    <div class="form-group">
+                        <label for="dataEmissao">Data Emissão:</label>
+                        <input type="text" id="dataEmissao" name="dataEmissao" readonly>
+                    </div>
+                </div>
+            </fieldset>
+            
+            <button type="submit" id="btnEnviar">Cadastrar Informações</button>
+        </form>
+        
+        <div id="mensagem-status"></div>
+    </div>
 </div>
 
-<!-- Iframe invisível para capturar o envio sem recarregar a página -->
-<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
-
 <script>
-    let enviado = false;
-    const form = document.getElementById('meuFormulario');
-    const statusDiv = document.getElementById('mensagem-status');
-    const btnEnviar = document.getElementById('btnEnviar');
+    const scriptURL = 'SUA_URL_DO_APPS_SCRIPT_AQUI'; // Cole a URL do seu Apps Script aqui
+    let emailUsuarioAutenticado = '';
+
+    // E-mails estritamente permitidos
+    const EMAILS_PERMITIDOS = [
+        "damasceno.ricardo@gmail.com",
+        "dim3nsaoproducoes@gmail.com"
+    ];
+
+    function parseJwt(token) {
+        var base64Url = token.split('.')[1];
+        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    }
+
+    function handleCredentialResponse(response) {
+        const responsePayload = parseJwt(response.credential);
+        emailUsuarioAutenticado = responsePayload.email.toLowerCase();
+
+        if (EMAILS_PERMITIDOS.includes(emailUsuarioAutenticado)) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('conteudo-protegido').style.display = 'block';
+            document.querySelector('#span-usuario strong').textContent = emailUsuarioAutenticado;
+            preencherDataEmissao();
+        } else {
+            document.getElementById('login-erro').textContent = 'Acesso negado: A conta ' + emailUsuarioAutenticado + ' não tem autorização.';
+        }
+    }
 
     function preencherDataEmissao() {
         const hoje = new Date();
@@ -226,27 +292,59 @@
         document.getElementById('dataEmissao').value = hoje.toLocaleDateString('pt-BR', opcoes);
     }
 
-    window.addEventListener('DOMContentLoaded', preencherDataEmissao);
+    const form = document.getElementById('meuFormulario');
+    const statusDiv = document.getElementById('mensagem-status');
+    const btnEnviar = document.getElementById('btnEnviar');
 
-    form.addEventListener('submit', function() {
-        enviado = true;
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        
         btnEnviar.disabled = true;
         btnEnviar.textContent = 'Enviando...';
         statusDiv.style.color = '#333';
-        statusDiv.textContent = 'Enviando dados para a planilha...';
-    });
+        statusDiv.textContent = 'Salvando na planilha...';
 
-    document.getElementById('hidden_iframe').addEventListener('load', function() {
-        if (enviado) {
+        const params = new URLSearchParams({
+            emailUsuario: emailUsuarioAutenticado,
+            nomeArtistico: document.getElementById('nomeArtistico').value,
+            nomeArtista: document.getElementById('nomeArtista').value,
+            cpfArtista: document.getElementById('cpfArtista').value,
+            enderecoArtista: document.getElementById('enderecoArtista').value,
+            riderTecnico: document.getElementById('riderTecnico').value,
+            riderHospitalidade: document.getElementById('riderHospitalidade').value,
+            nomeContratante: document.getElementById('nomeContratante').value,
+            nacionalidadeContratante: document.getElementById('nacionalidadeContratante').value,
+            cpfCnpjContratante: document.getElementById('cpfCnpjContratante').value,
+            enderecoContratante: document.getElementById('enderecoContratante').value,
+            nomeEvento: document.getElementById('nomeEvento').value,
+            localEvento: document.getElementById('localEvento').value,
+            dataEvento: document.getElementById('dataEvento').value,
+            settime: document.getElementById('settime').value,
+            duracaoApresentacao: document.getElementById('duracaoApresentacao').value,
+            valorSinal: document.getElementById('valorSinal').value,
+            dataSinal: document.getElementById('dataSinal').value,
+            valorCache: document.getElementById('valorCache').value,
+            dataEmissao: document.getElementById('dataEmissao').value
+        });
+
+        const urlFinal = scriptURL + '?' + params.toString();
+
+        fetch(urlFinal, { method: 'GET', mode: 'no-cors' })
+        .then(() => {
             statusDiv.style.color = 'green';
             statusDiv.textContent = 'Dados cadastrados com sucesso na planilha!';
             form.reset();
             preencherDataEmissao();
-
+        })
+        .catch(error => {
+            statusDiv.style.color = 'red';
+            statusDiv.textContent = 'Erro ao enviar. Verifique a conexão.';
+            console.error('Erro!', error);
+        })
+        .finally(() => {
             btnEnviar.disabled = false;
             btnEnviar.textContent = 'Cadastrar Informações';
-            enviado = false;
-        }
+        });
     });
 </script>
 
