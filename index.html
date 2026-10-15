@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cadastro de Contrato - Dim3nsão</title>
+    <!-- Biblioteca oficial do Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -21,16 +23,11 @@
         }
         #login-screen {
             text-align: center;
-            padding: 30px 10px;
+            padding: 40px 20px;
         }
         #login-screen h3 {
             color: #333;
-            margin-bottom: 20px;
-        }
-        .login-box {
-            max-width: 400px;
-            margin: 0 auto;
-            text-align: left;
+            margin-bottom: 10px;
         }
         #conteudo-protegido {
             display: none;
@@ -91,12 +88,6 @@
         button:hover {
             background-color: #218838;
         }
-        .btn-acessar {
-            background-color: #0056b3;
-        }
-        .btn-acessar:hover {
-            background-color: #004085;
-        }
         #mensagem-status, #login-erro {
             margin-top: 15px;
             text-align: center;
@@ -113,6 +104,11 @@
             justify-content: space-between;
             align-items: center;
         }
+        .google-btn-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
         @media(max-width: 600px) {
             .grid-2 { grid-template-columns: 1fr; }
         }
@@ -122,33 +118,22 @@
 
 <div class="form-container">
     
-    <!-- TELA DE AUTENTICAÇÃO DIRETA -->
+    <!-- TELA DE LOGIN COM CONTA GOOGLE -->
     <div id="login-screen">
         <h3>Acesso Restrito - Gestão de Contratos</h3>
+        <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Faça login com uma Conta Google autorizada para continuar.</p>
         
-        <div class="login-box">
-            <div class="form-group">
-                <label for="selectEmail">Selecione o E-mail Autorizado:</label>
-                <select id="selectEmail">
-                    <option value="damasceno.ricardo@gmail.com">damasceno.ricardo@gmail.com</option>
-                    <option value="dim3nsaoproducoes@gmail.com">dim3nsaoproducoes@gmail.com</option>
-                </select>
-            </div>
-            
-            <div class="form-group">
-                <label for="inputToken">Chave de Acesso (Token):</label>
-                <input type="password" id="inputToken" placeholder="Digite a chave secreta">
-            </div>
-
-            <button type="button" class="btn-acessar" onclick="validarAcesso()">Entrar no Sistema</button>
-            <div id="login-erro" style="color: red;"></div>
+        <div class="google-btn-wrapper">
+            <div id="buttonDiv"></div>
         </div>
+
+        <div id="login-erro" style="color: red;"></div>
     </div>
 
-    <!-- CONTEÚDO DO FORMULÁRIO (Exibido após validação) -->
+    <!-- CONTEÚDO DO FORMULÁRIO (Exibido após autenticação bem-sucedida) -->
     <div id="conteudo-protegido">
         <div class="user-info">
-            <span id="span-usuario">Usuário: <strong></strong></span>
+            <span id="span-usuario">Logado como: <strong></strong></span>
             <a href="#" onclick="location.reload()" style="color: #d9534f; text-decoration: none; font-weight: bold;">Sair</a>
         </div>
 
@@ -271,36 +256,575 @@
 </div>
 
 <script>
-    // URL do seu Google Apps Script (mantendo o link já implantado)
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzqEZeHdOI0UuTu99WkziXyA4-tPOA0yUP7CfY0Hsk59QdaXscQcXs35fG3Bf6Kf8j3_Q/exec';
-    
-    // Token configurado no Apps Script
-    const TOKEN_CORRETO = 'DIM3NSAO2026';
-    
-    let emailSessao = '';
-    let tokenSessao = '';
+    // Configurações principais
+    const GOOGLE_CLIENT_ID = 'COLE_SEU_CLIENT_ID_AQUI.apps.googleusercontent.com'; // <--- Seu Client ID do Google Cloud
+    const scriptURL = '<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Contrato - Dim3nsão</title>
+    <!-- Biblioteca oficial do Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 30px;
+        }
+        .form-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        #login-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        #login-screen h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        #conteudo-protegido {
+            display: none;
+        }
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        fieldset {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        legend {
+            font-weight: bold;
+            color: #0056b3;
+            padding: 0 5px;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        label {
+            display: block;
+            margin-bottom: 4px;
+            color: #555;
+            font-size: 14px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        input:read-only {
+            background-color: #e9ecef;
+            color: #495057;
+            cursor: not-allowed;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #mensagem-status, #login-erro {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .user-info {
+            background: #eef2f7;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .google-btn-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        @media(max-width: 600px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
 
-    function validarAcesso() {
-        const emailSelecionado = document.getElementById('selectEmail').value;
-        // Pega o token, remove espaços das pontas e transforma em maiúsculas
-        const tokenDigitado = document.getElementById('inputToken').value.trim().toUpperCase();
+<div class="form-container">
+    
+    <!-- TELA DE LOGIN COM CONTA GOOGLE -->
+    <div id="login-screen">
+        <h3>Acesso Restrito - Gestão de Contratos</h3>
+        <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Faça login com uma Conta Google autorizada para continuar.</p>
+        
+        <div class="google-btn-wrapper">
+            <div id="buttonDiv"></div>
+        </div>
+
+        <div id="login-erro" style="color: red;"></div>
+    </div>
+
+    <!-- CONTEÚDO DO FORMULÁRIO (Exibido após autenticação bem-sucedida) -->
+    <div id="conteudo-protegido">
+        <div class="user-info">
+            <span id="span-usuario">Logado como: <strong></strong></span>
+            <a href="#" onclick="location.reload()" style="color: #d9534f; text-decoration: none; font-weight: bold;">Sair</a>
+        </div>
+
+        <h2>Cadastro de Contrato e Evento</h2>
+        
+        <form id="meuFormulario">
+            <fieldset>
+                <legend>Informações do Artista</legend>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="nomeArtistico">Nome Artístico:</label>
+                        <input type="text" id="nomeArtistico" name="nomeArtistico" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nomeArtista">Nome Artista (Razão/Civil):</label>
+                        <input type="text" id="nomeArtista" name="nomeArtista" required>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="cpfArtista">CPF Artista:</label>
+                        <input type="text" id="cpfArtista" name="cpfArtista" placeholder="000.000.000-00">
+                    </div>
+                    <div class="form-group">
+                        <label for="enderecoArtista">Endereço Artista:</label>
+                        <input type="text" id="enderecoArtista" name="enderecoArtista">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="riderTecnico">Rider Técnico (Link ou Descrição):</label>
+                        <input type="text" id="riderTecnico" name="riderTecnico">
+                    </div>
+                    <div class="form-group">
+                        <label for="riderHospitalidade">Rider Hospitalidade:</label>
+                        <input type="text" id="riderHospitalidade" name="riderHospitalidade">
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Informações do Contratante</legend>
+                <div class="form-group">
+                    <label for="nomeContratante">Nome Contratante:</label>
+                    <input type="text" id="nomeContratante" name="nomeContratante" required>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="nacionalidadeContratante">Nacionalidade Contratante:</label>
+                        <input type="text" id="nacionalidadeContratante" name="nacionalidadeContratante" placeholder="Ex: Brasileira">
+                    </div>
+                    <div class="form-group">
+                        <label for="cpfCnpjContratante">CPF/CNPJ Contratante:</label>
+                        <input type="text" id="cpfCnpjContratante" name="cpfCnpjContratante" placeholder="000.000.000-00 ou 00.000.000/0000-00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="enderecoContratante">Endereço Contratante:</label>
+                    <input type="text" id="enderecoContratante" name="enderecoContratante">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Dados do Evento</legend>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="nomeEvento">Nome do Evento:</label>
+                        <input type="text" id="nomeEvento" name="nomeEvento" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="localEvento">Local Evento:</label>
+                        <input type="text" id="localEvento" name="localEvento">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="dataEvento">Data Evento:</label>
+                        <input type="date" id="dataEvento" name="dataEvento">
+                    </div>
+                    <div class="form-group">
+                        <label for="settime">Settime:</label>
+                        <input type="text" id="settime" name="settime" placeholder="Ex: 02:00 - 03:30">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="duracaoApresentacao">Duração Apresentação:</label>
+                    <input type="text" id="duracaoApresentacao" name="duracaoApresentacao" placeholder="Ex: 1h30m">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Financeiro e Emissão</legend>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="valorSinal">Valor Sinal:</label>
+                        <input type="text" id="valorSinal" name="valorSinal" placeholder="R$ 0,00">
+                    </div>
+                    <div class="form-group">
+                        <label for="dataSinal">Data do sinal:</label>
+                        <input type="date" id="dataSinal" name="dataSinal">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="valorCache">Valor Cachê:</label>
+                        <input type="text" id="valorCache" name="valorCache" placeholder="R$ 0,00">
+                    </div>
+                    <div class="form-group">
+                        <label for="dataEmissao">Data Emissão:</label>
+                        <input type="text" id="dataEmissao" name="dataEmissao" readonly>
+                    </div>
+                </div>
+            </fieldset>
+            
+            <button type="submit" id="btnEnviar">Cadastrar Informações</button>
+        </form>
+        
+        <div id="mensagem-status"></div>
+    </div>
+</div>
+
+<script>
+    // Configurações principais
+    const GOOGLE_CLIENT_ID = 'COLE_SEU_CLIENT_ID_AQUI.apps.googleusercontent.com'; // <--- Seu Client ID do Google Cloud
+    const scriptURL = '<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Contrato - Dim3nsão</title>
+    <!-- Biblioteca oficial do Google Identity Services -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 30px;
+        }
+        .form-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        #login-screen {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        #login-screen h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+        #conteudo-protegido {
+            display: none;
+        }
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        fieldset {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        legend {
+            font-weight: bold;
+            color: #0056b3;
+            padding: 0 5px;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        label {
+            display: block;
+            margin-bottom: 4px;
+            color: #555;
+            font-size: 14px;
+        }
+        input, select, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        input:read-only {
+            background-color: #e9ecef;
+            color: #495057;
+            cursor: not-allowed;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #mensagem-status, #login-erro {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        .user-info {
+            background: #eef2f7;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .google-btn-wrapper {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        @media(max-width: 600px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    
+    <!-- TELA DE LOGIN COM CONTA GOOGLE -->
+    <div id="login-screen">
+        <h3>Acesso Restrito - Gestão de Contratos</h3>
+        <p style="color: #666; font-size: 14px; margin-bottom: 20px;">Faça login com uma Conta Google autorizada para continuar.</p>
+        
+        <div class="google-btn-wrapper">
+            <div id="buttonDiv"></div>
+        </div>
+
+        <div id="login-erro" style="color: red;"></div>
+    </div>
+
+    <!-- CONTEÚDO DO FORMULÁRIO (Exibido após autenticação bem-sucedida) -->
+    <div id="conteudo-protegido">
+        <div class="user-info">
+            <span id="span-usuario">Logado como: <strong></strong></span>
+            <a href="#" onclick="location.reload()" style="color: #d9534f; text-decoration: none; font-weight: bold;">Sair</a>
+        </div>
+
+        <h2>Cadastro de Contrato e Evento</h2>
+        
+        <form id="meuFormulario">
+            <fieldset>
+                <legend>Informações do Artista</legend>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="nomeArtistico">Nome Artístico:</label>
+                        <input type="text" id="nomeArtistico" name="nomeArtistico" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nomeArtista">Nome Artista (Razão/Civil):</label>
+                        <input type="text" id="nomeArtista" name="nomeArtista" required>
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="cpfArtista">CPF Artista:</label>
+                        <input type="text" id="cpfArtista" name="cpfArtista" placeholder="000.000.000-00">
+                    </div>
+                    <div class="form-group">
+                        <label for="enderecoArtista">Endereço Artista:</label>
+                        <input type="text" id="enderecoArtista" name="enderecoArtista">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="riderTecnico">Rider Técnico (Link ou Descrição):</label>
+                        <input type="text" id="riderTecnico" name="riderTecnico">
+                    </div>
+                    <div class="form-group">
+                        <label for="riderHospitalidade">Rider Hospitalidade:</label>
+                        <input type="text" id="riderHospitalidade" name="riderHospitalidade">
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Informações do Contratante</legend>
+                <div class="form-group">
+                    <label for="nomeContratante">Nome Contratante:</label>
+                    <input type="text" id="nomeContratante" name="nomeContratante" required>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="nacionalidadeContratante">Nacionalidade Contratante:</label>
+                        <input type="text" id="nacionalidadeContratante" name="nacionalidadeContratante" placeholder="Ex: Brasileira">
+                    </div>
+                    <div class="form-group">
+                        <label for="cpfCnpjContratante">CPF/CNPJ Contratante:</label>
+                        <input type="text" id="cpfCnpjContratante" name="cpfCnpjContratante" placeholder="000.000.000-00 ou 00.000.000/0000-00">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="enderecoContratante">Endereço Contratante:</label>
+                    <input type="text" id="enderecoContratante" name="enderecoContratante">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Dados do Evento</legend>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="nomeEvento">Nome do Evento:</label>
+                        <input type="text" id="nomeEvento" name="nomeEvento" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="localEvento">Local Evento:</label>
+                        <input type="text" id="localEvento" name="localEvento">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="dataEvento">Data Evento:</label>
+                        <input type="date" id="dataEvento" name="dataEvento">
+                    </div>
+                    <div class="form-group">
+                        <label for="settime">Settime:</label>
+                        <input type="text" id="settime" name="settime" placeholder="Ex: 02:00 - 03:30">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="duracaoApresentacao">Duração Apresentação:</label>
+                    <input type="text" id="duracaoApresentacao" name="duracaoApresentacao" placeholder="Ex: 1h30m">
+                </div>
+            </fieldset>
+
+            <fieldset>
+                <legend>Financeiro e Emissão</legend>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="valorSinal">Valor Sinal:</label>
+                        <input type="text" id="valorSinal" name="valorSinal" placeholder="R$ 0,00">
+                    </div>
+                    <div class="form-group">
+                        <label for="dataSinal">Data do sinal:</label>
+                        <input type="date" id="dataSinal" name="dataSinal">
+                    </div>
+                </div>
+                <div class="grid-2">
+                    <div class="form-group">
+                        <label for="valorCache">Valor Cachê:</label>
+                        <input type="text" id="valorCache" name="valorCache" placeholder="R$ 0,00">
+                    </div>
+                    <div class="form-group">
+                        <label for="dataEmissao">Data Emissão:</label>
+                        <input type="text" id="dataEmissao" name="dataEmissao" readonly>
+                    </div>
+                </div>
+            </fieldset>
+            
+            <button type="submit" id="btnEnviar">Cadastrar Informações</button>
+        </form>
+        
+        <div id="mensagem-status"></div>
+    </div>
+</div>
+
+<script>
+    // Configurações principais
+    const GOOGLE_CLIENT_ID = '555139928325-sghgpvg5t9v9haiu30p3k1r9vhlmlod9.apps.googleusercontent.com'; // <--- Seu Client ID do Google Cloud
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzqEZeHdOI0UuTu99WkziXyA4-tPOA0yUP7CfY0Hsk59QdaXscQcXs35fG3Bf6Kf8j3_Q/exec'; // <--- URL do seu Web App do Apps Script
+    
+    let emailUsuarioAutenticado = '';
+
+    const EMAILS_PERMITIDOS = [
+        "damasceno.ricardo@gmail.com",
+        "dim3nsaoproducoes@gmail.com"
+    ];
+
+    // Decodifica o token seguro retornado pelo Google
+    function parseJwt(token) {
+        var base64Url = token.split('.')[1];
+        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    }
+
+    // Callback executado ao logar com sucesso
+    window.handleCredentialResponse = function(response) {
+        const responsePayload = parseJwt(response.credential);
+        emailUsuarioAutenticado = responsePayload.email.toLowerCase();
         const erroDiv = document.getElementById('login-erro');
 
-        // Compara com a chave oficial em maiúsculas
-        if (tokenDigitado === 'DIM3NSAO2026') {
-            emailSessao = emailSelecionado;
-            tokenSessao = tokenDigitado;
-
+        if (EMAILS_PERMITIDOS.includes(emailUsuarioAutenticado)) {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('conteudo-protegido').style.display = 'block';
-            document.querySelector('#span-usuario strong').textContent = emailSessao;
-            
+            document.querySelector('#span-usuario strong').textContent = emailUsuarioAutenticado;
             preencherDataEmissao();
-            erroDiv.textContent = '';
         } else {
-            erroDiv.textContent = 'Chave de acesso incorreta.';
+            erroDiv.textContent = 'Acesso negado: A conta ' + emailUsuarioAutenticado + ' não tem autorização.';
         }
     }
+
+    // Inicialização do Google Sign-In
+    window.onload = function () {
+        google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleCredentialResponse
+        });
+        google.accounts.id.renderButton(
+            document.getElementById("buttonDiv"),
+            { theme: "outline", size: "large", text: "signin_with", shape: "rectangular", width: 250 }
+        );
+    };
+
     function preencherDataEmissao() {
         const hoje = new Date();
         const opcoes = { year: 'numeric', month: 'long', day: 'numeric' };
@@ -320,8 +844,227 @@
         statusDiv.textContent = 'Salvando na planilha...';
 
         const params = new URLSearchParams({
-            token: tokenSessao,
-            emailUsuario: emailSessao,
+            emailUsuario: emailUsuarioAutenticado,
+            nomeArtistico: document.getElementById('nomeArtistico').value,
+            nomeArtista: document.getElementById('nomeArtista').value,
+            cpfArtista: document.getElementById('cpfArtista').value,
+            enderecoArtista: document.getElementById('enderecoArtista').value,
+            riderTecnico: document.getElementById('riderTecnico').value,
+            riderHospitalidade: document.getElementById('riderHospitalidade').value,
+            nomeContratante: document.getElementById('nomeContratante').value,
+            nacionalidadeContratante: document.getElementById('nacionalidadeContratante').value,
+            cpfCnpjContratante: document.getElementById('cpfCnpjContratante').value,
+            enderecoContratante: document.getElementById('enderecoContratante').value,
+            nomeEvento: document.getElementById('nomeEvento').value,
+            localEvento: document.getElementById('localEvento').value,
+            dataEvento: document.getElementById('dataEvento').value,
+            settime: document.getElementById('settime').value,
+            duracaoApresentacao: document.getElementById('duracaoApresentacao').value,
+            valorSinal: document.getElementById('valorSinal').value,
+            dataSinal: document.getElementById('dataSinal').value,
+            valorCache: document.getElementById('valorCache').value,
+            dataEmissao: document.getElementById('dataEmissao').value
+        });
+
+        const urlFinal = scriptURL + '?' + params.toString();
+
+        fetch(urlFinal, { method: 'GET', mode: 'no-cors' })
+        .then(() => {
+            statusDiv.style.color = 'green';
+            statusDiv.textContent = 'Dados cadastrados com sucesso na planilha!';
+            form.reset();
+            preencherDataEmissao();
+        })
+        .catch(error => {
+            statusDiv.style.color = 'red';
+            statusDiv.textContent = 'Erro ao enviar. Verifique a conexão.';
+            console.error('Erro!', error);
+        })
+        .finally(() => {
+            btnEnviar.disabled = false;
+            btnEnviar.textContent = 'Cadastrar Informações';
+        });
+    });
+</script>
+
+</body>
+</html>'; // <--- URL do seu Web App do Apps Script
+    
+    let emailUsuarioAutenticado = '';
+
+    const EMAILS_PERMITIDOS = [
+        "damasceno.ricardo@gmail.com",
+        "dim3nsaoproducoes@gmail.com"
+    ];
+
+    // Decodifica o token seguro retornado pelo Google
+    function parseJwt(token) {
+        var base64Url = token.split('.')[1];
+        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    }
+
+    // Callback executado ao logar com sucesso
+    window.handleCredentialResponse = function(response) {
+        const responsePayload = parseJwt(response.credential);
+        emailUsuarioAutenticado = responsePayload.email.toLowerCase();
+        const erroDiv = document.getElementById('login-erro');
+
+        if (EMAILS_PERMITIDOS.includes(emailUsuarioAutenticado)) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('conteudo-protegido').style.display = 'block';
+            document.querySelector('#span-usuario strong').textContent = emailUsuarioAutenticado;
+            preencherDataEmissao();
+        } else {
+            erroDiv.textContent = 'Acesso negado: A conta ' + emailUsuarioAutenticado + ' não tem autorização.';
+        }
+    }
+
+    // Inicialização do Google Sign-In
+    window.onload = function () {
+        google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleCredentialResponse
+        });
+        google.accounts.id.renderButton(
+            document.getElementById("buttonDiv"),
+            { theme: "outline", size: "large", text: "signin_with", shape: "rectangular", width: 250 }
+        );
+    };
+
+    function preencherDataEmissao() {
+        const hoje = new Date();
+        const opcoes = { year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('dataEmissao').value = hoje.toLocaleDateString('pt-BR', opcoes);
+    }
+
+    const form = document.getElementById('meuFormulario');
+    const statusDiv = document.getElementById('mensagem-status');
+    const btnEnviar = document.getElementById('btnEnviar');
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        
+        btnEnviar.disabled = true;
+        btnEnviar.textContent = 'Enviando...';
+        statusDiv.style.color = '#333';
+        statusDiv.textContent = 'Salvando na planilha...';
+
+        const params = new URLSearchParams({
+            emailUsuario: emailUsuarioAutenticado,
+            nomeArtistico: document.getElementById('nomeArtistico').value,
+            nomeArtista: document.getElementById('nomeArtista').value,
+            cpfArtista: document.getElementById('cpfArtista').value,
+            enderecoArtista: document.getElementById('enderecoArtista').value,
+            riderTecnico: document.getElementById('riderTecnico').value,
+            riderHospitalidade: document.getElementById('riderHospitalidade').value,
+            nomeContratante: document.getElementById('nomeContratante').value,
+            nacionalidadeContratante: document.getElementById('nacionalidadeContratante').value,
+            cpfCnpjContratante: document.getElementById('cpfCnpjContratante').value,
+            enderecoContratante: document.getElementById('enderecoContratante').value,
+            nomeEvento: document.getElementById('nomeEvento').value,
+            localEvento: document.getElementById('localEvento').value,
+            dataEvento: document.getElementById('dataEvento').value,
+            settime: document.getElementById('settime').value,
+            duracaoApresentacao: document.getElementById('duracaoApresentacao').value,
+            valorSinal: document.getElementById('valorSinal').value,
+            dataSinal: document.getElementById('dataSinal').value,
+            valorCache: document.getElementById('valorCache').value,
+            dataEmissao: document.getElementById('dataEmissao').value
+        });
+
+        const urlFinal = scriptURL + '?' + params.toString();
+
+        fetch(urlFinal, { method: 'GET', mode: 'no-cors' })
+        .then(() => {
+            statusDiv.style.color = 'green';
+            statusDiv.textContent = 'Dados cadastrados com sucesso na planilha!';
+            form.reset();
+            preencherDataEmissao();
+        })
+        .catch(error => {
+            statusDiv.style.color = 'red';
+            statusDiv.textContent = 'Erro ao enviar. Verifique a conexão.';
+            console.error('Erro!', error);
+        })
+        .finally(() => {
+            btnEnviar.disabled = false;
+            btnEnviar.textContent = 'Cadastrar Informações';
+        });
+    });
+</script>
+
+</body>
+</html>'; // <--- URL do seu Web App do Apps Script
+    
+    let emailUsuarioAutenticado = '';
+
+    const EMAILS_PERMITIDOS = [
+        "damasceno.ricardo@gmail.com",
+        "dim3nsaoproducoes@gmail.com"
+    ];
+
+    // Decodifica o token seguro retornado pelo Google
+    function parseJwt(token) {
+        var base64Url = token.split('.')[1];
+        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+        var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+        return JSON.parse(jsonPayload);
+    }
+
+    // Callback executado ao logar com sucesso
+    window.handleCredentialResponse = function(response) {
+        const responsePayload = parseJwt(response.credential);
+        emailUsuarioAutenticado = responsePayload.email.toLowerCase();
+        const erroDiv = document.getElementById('login-erro');
+
+        if (EMAILS_PERMITIDOS.includes(emailUsuarioAutenticado)) {
+            document.getElementById('login-screen').style.display = 'none';
+            document.getElementById('conteudo-protegido').style.display = 'block';
+            document.querySelector('#span-usuario strong').textContent = emailUsuarioAutenticado;
+            preencherDataEmissao();
+        } else {
+            erroDiv.textContent = 'Acesso negado: A conta ' + emailUsuarioAutenticado + ' não tem autorização.';
+        }
+    }
+
+    // Inicialização do Google Sign-In
+    window.onload = function () {
+        google.accounts.id.initialize({
+            client_id: GOOGLE_CLIENT_ID,
+            callback: handleCredentialResponse
+        });
+        google.accounts.id.renderButton(
+            document.getElementById("buttonDiv"),
+            { theme: "outline", size: "large", text: "signin_with", shape: "rectangular", width: 250 }
+        );
+    };
+
+    function preencherDataEmissao() {
+        const hoje = new Date();
+        const opcoes = { year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('dataEmissao').value = hoje.toLocaleDateString('pt-BR', opcoes);
+    }
+
+    const form = document.getElementById('meuFormulario');
+    const statusDiv = document.getElementById('mensagem-status');
+    const btnEnviar = document.getElementById('btnEnviar');
+
+    form.addEventListener('submit', e => {
+        e.preventDefault();
+        
+        btnEnviar.disabled = true;
+        btnEnviar.textContent = 'Enviando...';
+        statusDiv.style.color = '#333';
+        statusDiv.textContent = 'Salvando na planilha...';
+
+        const params = new URLSearchParams({
+            emailUsuario: emailUsuarioAutenticado,
             nomeArtistico: document.getElementById('nomeArtistico').value,
             nomeArtista: document.getElementById('nomeArtista').value,
             cpfArtista: document.getElementById('cpfArtista').value,
