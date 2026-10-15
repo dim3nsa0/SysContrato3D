@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Contrato e Apresentação</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 30px;
+        }
+        .form-container {
+            background: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h2 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 25px;
+        }
+        fieldset {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        legend {
+            font-weight: bold;
+            color: #0056b3;
+            padding: 0 5px;
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        label {
+            display: block;
+            margin-bottom: 4px;
+            color: #555;
+            font-size: 14px;
+        }
+        input, textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        input:read-only {
+            background-color: #e9ecef;
+            color: #495057;
+            cursor: not-allowed;
+        }
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #28a745;
+            border: none;
+            color: white;
+            font-size: 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #mensagem-status {
+            margin-top: 15px;
+            text-align: center;
+            font-weight: bold;
+        }
+        @media(max-width: 600px) {
+            .grid-2 { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Cadastro de Contrato e Evento</h2>
+    
+    <!-- Formulário apontando diretamente para o Web App via target iframe (zero CORS, zero 401) -->
+    <form id="meuFormulario" method="POST" action="https://script.google.com/macros/s/AKfycbzqEZeHdOI0UuTu99WkziXyA4-tPOA0yUP7CfY0Hsk59QdaXscQcXs35fG3Bf6Kf8j3_Q/exec" target="hidden_iframe">
+        
+        <!-- Dados do Artista -->
+        <fieldset>
+            <legend>Informações do Artista</legend>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="nomeArtistico">Nome Artístico:</label>
+                    <input type="text" id="nomeArtistico" name="nomeArtistico" required>
+                </div>
+                <div class="form-group">
+                    <label for="nomeArtista">Nome Artista (Razão/Civil):</label>
+                    <input type="text" id="nomeArtista" name="nomeArtista" required>
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="cpfArtista">CPF Artista:</label>
+                    <input type="text" id="cpfArtista" name="cpfArtista" placeholder="000.000.000-00">
+                </div>
+                <div class="form-group">
+                    <label for="enderecoArtista">Endereço Artista:</label>
+                    <input type="text" id="enderecoArtista" name="enderecoArtista">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="riderTecnico">Rider Técnico (Link ou Descrição):</label>
+                    <input type="text" id="riderTecnico" name="riderTecnico">
+                </div>
+                <div class="form-group">
+                    <label for="riderHospitalidade">Rider Hospitalidade:</label>
+                    <input type="text" id="riderHospitalidade" name="riderHospitalidade">
+                </div>
+            </div>
+        </fieldset>
+
+        <!-- Dados do Contratante -->
+        <fieldset>
+            <legend>Informações do Contratante</legend>
+            <div class="form-group">
+                <label for="nomeContratante">Nome Contratante:</label>
+                <input type="text" id="nomeContratante" name="nomeContratante" required>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="nacionalidadeContratante">Nacionalidade Contratante:</label>
+                    <input type="text" id="nacionalidadeContratante" name="nacionalidadeContratante" placeholder="Ex: Brasileira">
+                </div>
+                <div class="form-group">
+                    <label for="cpfCnpjContratante">CPF/CNPJ Contratante:</label>
+                    <input type="text" id="cpfCnpjContratante" name="cpfCnpjContratante" placeholder="000.000.000-00 ou 00.000.000/0000-00">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="enderecoContratante">Endereço Contratante:</label>
+                <input type="text" id="enderecoContratante" name="enderecoContratante">
+            </div>
+        </fieldset>
+
+        <!-- Dados do Evento e Apresentação -->
+        <fieldset>
+            <legend>Dados do Evento</legend>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="nomeEvento">Nome do Evento:</label>
+                    <input type="text" id="nomeEvento" name="nomeEvento" required>
+                </div>
+                <div class="form-group">
+                    <label for="localEvento">Local Evento:</label>
+                    <input type="text" id="localEvento" name="localEvento">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="dataEvento">Data Evento:</label>
+                    <input type="date" id="dataEvento" name="dataEvento">
+                </div>
+                <div class="form-group">
+                    <label for="settime">Settime:</label>
+                    <input type="text" id="settime" name="settime" placeholder="Ex: 02:00 - 03:30">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="duracaoApresentacao">Duração Apresentação:</label>
+                <input type="text" id="duracaoApresentacao" name="duracaoApresentacao" placeholder="Ex: 1h30m">
+            </div>
+        </fieldset>
+
+        <!-- Valores e Prazos -->
+        <fieldset>
+            <legend>Financeiro e Emissão</legend>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="valorSinal">Valor Sinal:</label>
+                    <input type="text" id="valorSinal" name="valorSinal" placeholder="R$ 0,00">
+                </div>
+                <div class="form-group">
+                    <label for="dataSinal">Data do Sinal:</label>
+                    <input type="date" id="dataSinal" name="dataSinal">
+                </div>
+            </div>
+            <div class="grid-2">
+                <div class="form-group">
+                    <label for="valorCache">Valor Cachê:</label>
+                    <input type="text" id="valorCache" name="valorCache" placeholder="R$ 0,00">
+                </div>
+                <div class="form-group">
+                    <label for="dataEmissao">Data Emissão:</label>
+                    <input type="text" id="dataEmissao" name="dataEmissao" readonly>
+                </div>
+            </div>
+        </fieldset>
+        
+        <button type="submit" id="btnEnviar">Cadastrar Informações</button>
+    </form>
+    
+    <div id="mensagem-status"></div>
+</div>
+
+<!-- Iframe invisível para capturar o envio sem recarregar a página -->
+<iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+
+<script>
+    let enviado = false;
+    const form = document.getElementById('meuFormulario');
+    const statusDiv = document.getElementById('mensagem-status');
+    const btnEnviar = document.getElementById('btnEnviar');
+
+    function preencherDataEmissao() {
+        const hoje = new Date();
+        const opcoes = { year: 'numeric', month: 'long', day: 'numeric' };
+        document.getElementById('dataEmissao').value = hoje.toLocaleDateString('pt-BR', opcoes);
+    }
+
+    window.addEventListener('DOMContentLoaded', preencherDataEmissao);
+
+    form.addEventListener('submit', function() {
+        enviado = true;
+        btnEnviar.disabled = true;
+        btnEnviar.textContent = 'Enviando...';
+        statusDiv.style.color = '#333';
+        statusDiv.textContent = 'Enviando dados para a planilha...';
+    });
+
+    document.getElementById('hidden_iframe').addEventListener('load', function() {
+        if (enviado) {
+            statusDiv.style.color = 'green';
+            statusDiv.textContent = 'Dados cadastrados com sucesso na planilha!';
+            form.reset();
+            preencherDataEmissao();
+
+            btnEnviar.disabled = false;
+            btnEnviar.textContent = 'Cadastrar Informações';
+            enviado = false;
+        }
+    });
+</script>
+
+</body>
+</html>
