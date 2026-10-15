@@ -256,9 +256,8 @@
 </div>
 
 <script>
-    // ⚙️ INSIRA SUAS CONFIGURAÇÕES ABAIXO:
-    const GOOGLE_CLIENT_ID = '555139928325-sghgpvg5t9v9haiu30p3k1r9vhlmlod9.apps.googleusercontent.com'; // <--- Seu Client ID do Google Cloud
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzqEZeHdOI0UuTu99WkziXyA4-tPOA0yUP7CfY0Hsk59QdaXscQcXs35fG3Bf6Kf8j3_Q/exec'; // <--- URL do seu Web App do Apps Script 
+    const GOOGLE_CLIENT_ID = '555139928325-sghgpvg5t9v9haiu30p3k1r9vhlmlod9.apps.googleusercontent.com';
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzqEZeHdOI0UuTu99WkziXyA4-tPOA0yUP7CfY0Hsk59QdaXscQcXs35fG3Bf6Kf8j3_Q/exec'; 
     
     let emailUsuarioAutenticado = '';
 
@@ -316,17 +315,11 @@
         e.preventDefault();
         
         btnEnviar.disabled = true;
-        btnEnviar.textContent = 'Enviando...';
+        btnEnviar.textContent = 'Gerando Contrato...';
         statusDiv.style.color = '#333';
-        statusDiv.textContent = 'Salvando na planilha...';
+        statusDiv.textContent = 'Processando documento e gerando PDF...';
 
-        // Cria um formulário dinâmico invisível para envio direto
-        const hiddenForm = document.createElement('form');
-        hiddenForm.method = 'POST';
-        hiddenForm.action = scriptURL;
-        hiddenForm.target = 'hidden_iframe'; // Envia sem sair da página
-
-        // Dados a serem enviados
+        // Coleta todos os dados do formulário incluindo o e-mail verificado
         const dados = {
             emailUsuario: emailUsuarioAutenticado,
             nomeArtistico: document.getElementById('nomeArtistico').value,
@@ -350,51 +343,31 @@
             dataEmissao: document.getElementById('dataEmissao').value
         };
 
-        // Adiciona cada campo como input oculto
+        // Envio via fetch (POST) para o Google Apps Script
+        const params = new URLSearchParams();
         for (const key in dados) {
-            const input = document.createElement('input');
-            input.type = 'hidden';
-            input.name = key;
-            input.value = dados[key];
-            hiddenForm.appendChild(input);
+            params.append(key, dados[key]);
         }
 
-        // Cria o iframe oculto para receber a resposta
-        let iframe = document.getElementById('hidden_iframe');
-        if (!iframe) {
-            iframe = document.createElement('iframe');
-            iframe.name = 'hidden_iframe';
-            iframe.id = 'hidden_iframe';
-            iframe.style.display = 'none';
-            document.body.appendChild(iframe);
-        }
-
-        document.body.appendChild(hiddenForm);
-        hiddenForm.submit();
-        document.body.removeChild(hiddenForm);
-
-        // Exibe mensagem de sucesso e limpa o formulário após 1.5 segundo
-        setTimeout(() => {
-            statusDiv.style.color = 'green';
-            statusDiv.textContent = 'Dados cadastrados com sucesso na planilha!';
-            form.reset();
-            preencherDataEmissao();
-            btnEnviar.disabled = false;
-            btnEnviar.textContent = 'Cadastrar Informações';
-        }, 1500);
-    });
-        const urlFinal = scriptURL + '?' + params.toString();
-
-        fetch(urlFinal, { method: 'GET', mode: 'no-cors' })
-        .then(() => {
-            statusDiv.style.color = 'green';
-            statusDiv.textContent = 'Dados cadastrados com sucesso na planilha!';
-            form.reset();
-            preencherDataEmissao();
+        fetch(scriptURL, {
+            method: 'POST',
+            body: params
+        })
+        .then(response => response.json())
+        .then(resultado => {
+            if (resultado.result === 'sucesso') {
+                statusDiv.style.color = 'green';
+                statusDiv.textContent = 'Contrato e PDF gerados com sucesso no Google Drive!';
+                form.reset();
+                preencherDataEmissao();
+            } else {
+                statusDiv.style.color = 'red';
+                statusDiv.textContent = 'Erro: ' + resultado.mensagem;
+            }
         })
         .catch(error => {
             statusDiv.style.color = 'red';
-            statusDiv.textContent = 'Erro ao enviar. Verifique a conexão.';
+            statusDiv.textContent = 'Erro de conexão ao processar.';
             console.error('Erro!', error);
         })
         .finally(() => {
