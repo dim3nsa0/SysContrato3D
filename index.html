@@ -3,9 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro de Contrato e Apresentação</title>
-    <!-- Biblioteca oficial de Login do Google -->
-    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <title>Cadastro de Contrato - Dim3nsão</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -23,11 +21,16 @@
         }
         #login-screen {
             text-align: center;
-            padding: 40px 20px;
+            padding: 30px 10px;
         }
         #login-screen h3 {
             color: #333;
             margin-bottom: 20px;
+        }
+        .login-box {
+            max-width: 400px;
+            margin: 0 auto;
+            text-align: left;
         }
         #conteudo-protegido {
             display: none;
@@ -57,7 +60,7 @@
             color: #555;
             font-size: 14px;
         }
-        input, textarea {
+        input, select, textarea {
             width: 100%;
             padding: 8px;
             border: 1px solid #ccc;
@@ -88,7 +91,13 @@
         button:hover {
             background-color: #218838;
         }
-        #mensagem-status {
+        .btn-acessar {
+            background-color: #0056b3;
+        }
+        .btn-acessar:hover {
+            background-color: #004085;
+        }
+        #mensagem-status, #login-erro {
             margin-top: 15px;
             text-align: center;
             font-weight: bold;
@@ -101,7 +110,7 @@
             font-size: 14px;
             color: #333;
             display: flex;
-            justify-: space-between;
+            justify-content: space-between;
             align-items: center;
         }
         @media(max-width: 600px) {
@@ -113,25 +122,33 @@
 
 <div class="form-container">
     
-    <!-- TELA DE LOGIN -->
+    <!-- TELA DE AUTENTICAÇÃO DIRETA -->
     <div id="login-screen">
-        <h3>Área Restrita - Gestão de Contratos</h3>
-        <p style="color: #666; margin-bottom: 25px; font-size: 14px;">Autentique-se com uma conta autorizada para prosseguir.</p>
+        <h3>Acesso Restrito - Gestão de Contratos</h3>
         
-        <div id="g_id_onload"
-             data-_id="555139928325-sghgpvg5t9v9haiu30p3k1r9vhlmlod9.apps.googleuser.com"
-             data-callback="handleCredentialResponse"
-             data-auto_prompt="false">
+        <div class="login-box">
+            <div class="form-group">
+                <label for="selectEmail">Selecione o E-mail Autorizado:</label>
+                <select id="selectEmail">
+                    <option value="damasceno.ricardo@gmail.com">damasceno.ricardo@gmail.com</option>
+                    <option value="dim3nsaoproducoes@gmail.com">dim3nsaoproducoes@gmail.com</option>
+                </select>
+            </div>
+            
+            <div class="form-group">
+                <label for="inputToken">Chave de Acesso (Token):</label>
+                <input type="password" id="inputToken" placeholder="Digite a chave secreta">
+            </div>
+
+            <button type="button" class="btn-acessar" onclick="validarAcesso()">Entrar no Sistema</button>
+            <div id="login-erro" style="color: red;"></div>
         </div>
-        <div class="g_id_signin" data-type="standard" data-size="large" data-theme="outline" data-text="sign_in_with" data-shape="rectangular" data-logo_alignment="left"></div>
-        
-        <div id="login-erro" style="color: red; margin-top: 15px; font-weight: bold;"></div>
     </div>
 
-    <!-- CONTEÚDO DO FORMULÁRIO (Protegido) -->
+    <!-- CONTEÚDO DO FORMULÁRIO (Exibido após validação) -->
     <div id="conteudo-protegido">
         <div class="user-info">
-            <span id="span-usuario">Logado como: <strong></strong></span>
+            <span id="span-usuario">Usuário: <strong></strong></span>
             <a href="#" onclick="location.reload()" style="color: #d9534f; text-decoration: none; font-weight: bold;">Sair</a>
         </div>
 
@@ -254,35 +271,32 @@
 </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzqEZeHdOI0UuTu99WkziXyA4-tPOA0yUP7CfY0Hsk59QdaXscQcXs35fG3Bf6Kf8j3_Q/exec'; // Cole a URL do seu Apps Script aqui
-    let emailUsuarioAutenticado = '';
+    // URL do seu Google Apps Script (mantendo o link já implantado)
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzqEZeHdOI0UuTu99WkziXyA4-tPOA0yUP7CfY0Hsk59QdaXscQcXs35fG3Bf6Kf8j3_Q/execc';
+    
+    // Token configurado no Apps Script
+    const TOKEN_CORRETO = 'DIM3NSAO2026';
+    
+    let emailSessao = '';
+    let tokenSessao = '';
 
-    // E-mails estritamente permitidos
-    const EMAILS_PERMITIDOS = [
-        "damasceno.ricardo@gmail.com",
-        "dim3nsaoproducoes@gmail.com"
-    ];
+    function validarAcesso() {
+        const emailSelecionado = document.getElementById('selectEmail').value;
+        const tokenDigitado = document.getElementById('inputToken').value.trim();
+        const erroDiv = document.getElementById('login-erro');
 
-    function parseJwt(token) {
-        var base64Url = token.split('.')[1];
-        var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        var jsonPayload = decodeURIComponent(window.atob(base64).split('').map(function(c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        return JSON.parse(jsonPayload);
-    }
+        if (tokenDigitado === TOKEN_CORRETO) {
+            emailSessao = emailSelecionado;
+            tokenSessao = tokenDigitado;
 
-    function handleCredentialResponse(response) {
-        const responsePayload = parseJwt(response.credential);
-        emailUsuarioAutenticado = responsePayload.email.toLowerCase();
-
-        if (EMAILS_PERMITIDOS.includes(emailUsuarioAutenticado)) {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('conteudo-protegido').style.display = 'block';
-            document.querySelector('#span-usuario strong').text = emailUsuarioAutenticado;
+            document.querySelector('#span-usuario strong').textContent = emailSessao;
+            
             preencherDataEmissao();
+            erroDiv.textContent = '';
         } else {
-            document.getElementById('login-erro').textContent = 'Acesso negado: A conta ' + emailUsuarioAutenticado + ' não tem autorização.';
+            erroDiv.textContent = 'Chave de acesso incorreta.';
         }
     }
 
@@ -305,7 +319,8 @@
         statusDiv.textContent = 'Salvando na planilha...';
 
         const params = new URLSearchParams({
-            emailUsuario: emailUsuarioAutenticado,
+            token: tokenSessao,
+            emailUsuario: emailSessao,
             nomeArtistico: document.getElementById('nomeArtistico').value,
             nomeArtista: document.getElementById('nomeArtista').value,
             cpfArtista: document.getElementById('cpfArtista').value,
