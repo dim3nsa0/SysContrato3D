@@ -101,7 +101,7 @@
             font-size: 14px;
             color: #333;
             display: flex;
-            justify-content: space-between;
+            justify-: space-between;
             align-items: center;
         }
         @media(max-width: 600px) {
@@ -119,7 +119,7 @@
         <p style="color: #666; margin-bottom: 25px; font-size: 14px;">Autentique-se com uma conta autorizada para prosseguir.</p>
         
         <div id="g_id_onload"
-             data-_id="555139928325-sghgpvg5t9v9haiu30p3k1r9vhlmlod9.apps.googleusercontent.com"
+             data-_id="555139928325-sghgpvg5t9v9haiu30p3k1r9vhlmlod9.apps.googleuser.com"
              data-callback="handleCredentialResponse"
              data-auto_prompt="false">
         </div>
@@ -279,7 +279,7 @@
         if (EMAILS_PERMITIDOS.includes(emailUsuarioAutenticado)) {
             document.getElementById('login-screen').style.display = 'none';
             document.getElementById('conteudo-protegido').style.display = 'block';
-            document.querySelector('#span-usuario strong').textContent = emailUsuarioAutenticado;
+            document.querySelector('#span-usuario strong').text = emailUsuarioAutenticado;
             preencherDataEmissao();
         } else {
             document.getElementById('login-erro').textContent = 'Acesso negado: A conta ' + emailUsuarioAutenticado + ' não tem autorização.';
