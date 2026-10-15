@@ -320,7 +320,14 @@
         statusDiv.style.color = '#333';
         statusDiv.textContent = 'Salvando na planilha...';
 
-        const params = new URLSearchParams({
+        // Cria um formulário dinâmico invisível para envio direto
+        const hiddenForm = document.createElement('form');
+        hiddenForm.method = 'POST';
+        hiddenForm.action = scriptURL;
+        hiddenForm.target = 'hidden_iframe'; // Envia sem sair da página
+
+        // Dados a serem enviados
+        const dados = {
             emailUsuario: emailUsuarioAutenticado,
             nomeArtistico: document.getElementById('nomeArtistico').value,
             nomeArtista: document.getElementById('nomeArtista').value,
@@ -341,8 +348,41 @@
             dataSinal: document.getElementById('dataSinal').value,
             valorCache: document.getElementById('valorCache').value,
             dataEmissao: document.getElementById('dataEmissao').value
-        });
+        };
 
+        // Adiciona cada campo como input oculto
+        for (const key in dados) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = dados[key];
+            hiddenForm.appendChild(input);
+        }
+
+        // Cria o iframe oculto para receber a resposta
+        let iframe = document.getElementById('hidden_iframe');
+        if (!iframe) {
+            iframe = document.createElement('iframe');
+            iframe.name = 'hidden_iframe';
+            iframe.id = 'hidden_iframe';
+            iframe.style.display = 'none';
+            document.body.appendChild(iframe);
+        }
+
+        document.body.appendChild(hiddenForm);
+        hiddenForm.submit();
+        document.body.removeChild(hiddenForm);
+
+        // Exibe mensagem de sucesso e limpa o formulário após 1.5 segundo
+        setTimeout(() => {
+            statusDiv.style.color = 'green';
+            statusDiv.textContent = 'Dados cadastrados com sucesso na planilha!';
+            form.reset();
+            preencherDataEmissao();
+            btnEnviar.disabled = false;
+            btnEnviar.textContent = 'Cadastrar Informações';
+        }, 1500);
+    });
         const urlFinal = scriptURL + '?' + params.toString();
 
         fetch(urlFinal, { method: 'GET', mode: 'no-cors' })
