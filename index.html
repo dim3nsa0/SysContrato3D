@@ -282,10 +282,12 @@
 
     function validarAcesso() {
         const emailSelecionado = document.getElementById('selectEmail').value;
-        const tokenDigitado = document.getElementById('inputToken').value.trim();
+        // Pega o token, remove espaços das pontas e transforma em maiúsculas
+        const tokenDigitado = document.getElementById('inputToken').value.trim().toUpperCase();
         const erroDiv = document.getElementById('login-erro');
 
-        if (tokenDigitado === TOKEN_CORRETO) {
+        // Compara com a chave oficial em maiúsculas
+        if (tokenDigitado === 'DIM3NSAO2026') {
             emailSessao = emailSelecionado;
             tokenSessao = tokenDigitado;
 
@@ -299,7 +301,6 @@
             erroDiv.textContent = 'Chave de acesso incorreta.';
         }
     }
-
     function preencherDataEmissao() {
         const hoje = new Date();
         const opcoes = { year: 'numeric', month: 'long', day: 'numeric' };
